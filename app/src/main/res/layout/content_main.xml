@@ -11,9 +11,21 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.torryyang.mobilefinalproject.MainActivity"
     tools:showIn="@layout/app_bar_main">
-
-    <TextView
+    <Button
+        android:id="@+id/testButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="Get Webservice Data"/>
+    <Button
+        android:id="@+id/anotherButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/testButton"
+        android:text="Get Local Data"/>
+    <TextView
+        android:id="@+id/tempShow"
+        android:text="Click a button!"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/testButton"/>
 </RelativeLayout>

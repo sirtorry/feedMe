@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">feedMe</string>
     <string name="main_name">Event Feed</string>
+    <string name="new_event">New Event</string>
+
+    <string name="event_name">Name</string>
+    <string name="event_descr">Description</string>
+    <string name="event_time">Time</string>
+    <string name="event_loc">Location</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
