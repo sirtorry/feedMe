@@ -16,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,15 +61,15 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
                 Cursor query = locDb.rawQuery("SELECT * from events",null);
-                if(query.moveToFirst()) {
+                String curStored = "";
+                while(query.moveToNext()) {
                     String name = query.getString(0);
                     String desc = query.getString(1);
                     String loc = query.getString(2);
                     String time = query.getString(3);
-                    tvData.setText(name + ", " + desc + ", " + loc + ", " + time);
-                }else {
-                    Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
+                    curStored += name + ", " + desc + ", " + loc + ", " + time + "\n";
                 }
+                tvData.setText(curStored);
                 locDb.close();
             }
         });
