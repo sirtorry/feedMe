@@ -1,6 +1,8 @@
 package com.torryyang.mobilefinalproject;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -35,9 +37,9 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-//        SQLiteDatabase sqliteDatabase = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-//        sqliteDatabase.execSQL("CREATE TABLE events(name TEXT, descr TEXT, eventTime TEXT, location TEXT, postTime TEXT, id INTEGER)");
-//        sqliteDatabase.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', '13:54 06/11/16', 'nowhere', '13:54 06/11/16', 12345) ");
+        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
+        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
 //        Cursor query = sqliteDatabase.rawQuery("SELECT * from events",null);
 //        if(query.moveToFirst()) {
 //            String name = query.getString(0);
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity
 //        } else {
 //            Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
 //        }
-//        sqliteDatabase.close();
+        locDb.close();
 
         Button testButton = (Button) findViewById(R.id.testButton);
         Button anotherButton = (Button) findViewById(R.id.anotherButton);
@@ -58,7 +60,18 @@ public class MainActivity extends AppCompatActivity
 
         anotherButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Toast.makeText(getBaseContext(),"right button pressed",Toast.LENGTH_SHORT).show();
+                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+                Cursor query = locDb.rawQuery("SELECT * from events",null);
+                if(query.moveToFirst()) {
+                    String name = query.getString(0);
+                    String desc = query.getString(1);
+                    String loc = query.getString(2);
+                    String time = query.getString(3);
+                    tvData.setText(name + ", " + desc + ", " + loc + ", " + time);
+                }else {
+                    Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
+                }
+                locDb.close();
             }
         });
 
