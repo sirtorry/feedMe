@@ -1,3 +1,7 @@
 # final-project-gengar
 
-to-do: time picker, add picture
+since last milestone:
+time picker
+place picker (GPS requirement)
+
+to-do: add picture
