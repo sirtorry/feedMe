@@ -25,24 +25,20 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/event_descr"
+        android:focusable="false"
         android:hint="@string/event_time"/>
     <EditText
         android:id="@+id/event_loc"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/event_time"
+        android:focusable="false"
         android:hint="@string/event_loc"/>
-    <TextView
-        android:id="@+id/add_loc"
-        android:text="Add location"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/event_loc"/>
     <Button
         android:id="@+id/add_event_button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/add_loc"
+        android:layout_below="@id/event_loc"
         android:text="Make Event"/>
 
 </RelativeLayout>

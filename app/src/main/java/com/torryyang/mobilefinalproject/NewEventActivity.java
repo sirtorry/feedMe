@@ -1,5 +1,7 @@
 package com.torryyang.mobilefinalproject;
 
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -8,7 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -23,8 +25,9 @@ public class NewEventActivity extends AppCompatActivity {
 
     Button makeButton;
     EditText eventName, eventDesc, eventLoc, eventTime;
-    TextView getPlace;
     int PLACE_PICKER_REQUEST = 1;
+    static final int DIALOG_ID = 0;
+    int eventHour, eventMin;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -41,8 +44,15 @@ public class NewEventActivity extends AppCompatActivity {
         eventDesc = (EditText) findViewById(R.id.event_descr);
         eventLoc = (EditText) findViewById(R.id.event_loc);
         eventTime = (EditText) findViewById(R.id.event_time);
-        getPlace = (TextView) findViewById(R.id.add_loc);
-        getPlace.setOnClickListener(new View.OnClickListener() {
+
+        eventTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDialog(DIALOG_ID);
+            }
+        });
+
+        eventLoc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
@@ -92,6 +102,21 @@ public class NewEventActivity extends AppCompatActivity {
                 .build();
     }
 
+    protected TimePickerDialog.OnTimeSetListener timePickerListener = new TimePickerDialog.OnTimeSetListener() {
+        @Override
+        public void onTimeSet(TimePicker timePicker, int hourOfDay, int minOfHour) {
+            eventHour = hourOfDay;
+            eventMin = minOfHour;
+            eventTime.setText(eventHour + ":" + eventMin);
+        }
+    };
+
+    protected Dialog onCreateDialog(int id) {
+        if (id == DIALOG_ID)
+            return new TimePickerDialog(NewEventActivity.this,timePickerListener, eventHour, eventMin,false);
+        return null;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -107,7 +132,6 @@ public class NewEventActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK) {
                 Place place = PlacePicker.getPlace(data,this);
                 String address = place.getAddress().toString();
-                getPlace.setText(address);
                 eventLoc.setText(address);
 //                SharedPreferences sharedPreferences =
 //                        PreferenceManager.getDefaultSharedPreferences(this);
