@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
         locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
-        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
+//        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
 //        Cursor query = sqliteDatabase.rawQuery("SELECT * from events",null);
 //        if(query.moveToFirst()) {
 //            String name = query.getString(0);
@@ -61,15 +61,17 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
                 Cursor query = locDb.rawQuery("SELECT * from events",null);
-                String curStored = "";
-                while(query.moveToNext()) {
-                    String name = query.getString(0);
-                    String desc = query.getString(1);
-                    String loc = query.getString(2);
-                    String time = query.getString(3);
-                    curStored += name + ", " + desc + ", " + loc + ", " + time + "\n";
+                if(query != null) {
+                    String curStored = "";
+                    while(query.moveToNext()) {
+                        String name = query.getString(0);
+                        String desc = query.getString(1);
+                        String loc = query.getString(2);
+                        String time = query.getString(3);
+                        curStored += name + ", " + desc + ", " + time + ", " + loc + "\n";
+                    }
+                    tvData.setText(curStored);
                 }
-                tvData.setText(curStored);
                 locDb.close();
             }
         });
