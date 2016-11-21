@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -36,45 +35,13 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
-//        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
-//        Cursor query = sqliteDatabase.rawQuery("SELECT * from events",null);
-//        if(query.moveToFirst()) {
-//            String name = query.getString(0);
-//            Toast.makeText(getBaseContext(),name,Toast.LENGTH_LONG).show();
-//        } else {
-//            Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
-//        }
-        locDb.close();
 
-        Button testButton = (Button) findViewById(R.id.testButton);
-        Button anotherButton = (Button) findViewById(R.id.anotherButton);
-        tvData = (TextView)findViewById(R.id.tempShow);
-        testButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/");
-            }
-        });
-
-        anotherButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-                Cursor query = locDb.rawQuery("SELECT * from events",null);
-                if(query != null) {
-                    String curStored = "";
-                    while(query.moveToNext()) {
-                        String name = query.getString(0);
-                        String desc = query.getString(1);
-                        String loc = query.getString(2);
-                        String time = query.getString(3);
-                        curStored += name + ", " + desc + ", " + time + ", " + loc + "\n";
-                    }
-                    tvData.setText(curStored);
-                }
-                locDb.close();
-            }
-        });
+//        Button testButton = (Button) findViewById(R.id.testButton);
+//        testButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/");
+//            }
+//        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -92,6 +59,34 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+        tvData = (TextView)findViewById(R.id.tempShow);
+        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
+        Cursor query = locDb.rawQuery("SELECT * from events",null);
+        if(query != null) {
+            String curStored = "";
+            while(query.moveToNext()) {
+                String name = query.getString(0);
+                String desc = query.getString(1);
+                String loc = query.getString(2);
+                String time = query.getString(3);
+                curStored += name + ", " + desc + ", " + time + ", " + loc + "\n";
+            }
+            tvData.setText(curStored);
+        }
+//        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
+//        Cursor query = sqliteDatabase.rawQuery("SELECT * from events",null);
+//        if(query.moveToFirst()) {
+//            String name = query.getString(0);
+//            Toast.makeText(getBaseContext(),name,Toast.LENGTH_LONG).show();
+//        } else {
+//            Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
+//        }
+        locDb.close();
     }
 
     public class JSONTask extends AsyncTask<String,String,String> {
