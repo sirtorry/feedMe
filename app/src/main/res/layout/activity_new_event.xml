@@ -10,35 +10,35 @@
     tools:context="com.torryyang.mobilefinalproject.NewEventActivity">
 
     <EditText
-        android:id="@+id/event_name"
+        android:id="@+id/new_event_name"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="@string/event_name"/>
     <EditText
-        android:id="@+id/event_descr"
+        android:id="@+id/new_event_descr"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/event_name"
+        android:layout_below="@id/new_event_name"
         android:hint="@string/event_descr"/>
     <EditText
-        android:id="@+id/event_time"
+        android:id="@+id/new_event_time"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/event_descr"
+        android:layout_below="@id/new_event_descr"
         android:focusable="false"
         android:hint="@string/event_time"/>
     <EditText
-        android:id="@+id/event_loc"
+        android:id="@+id/new_event_loc"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/event_time"
+        android:layout_below="@id/new_event_time"
         android:focusable="false"
         android:hint="@string/event_loc"/>
     <Button
         android:id="@+id/add_event_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/event_loc"
+        android:layout_below="@id/new_event_loc"
         android:text="Make Event"/>
 
 </RelativeLayout>

@@ -40,10 +40,10 @@ public class NewEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_event);
 
         Button makeButton = (Button) findViewById(R.id.add_event_button);
-        eventName = (EditText) findViewById(R.id.event_name);
-        eventDesc = (EditText) findViewById(R.id.event_descr);
-        eventLoc = (EditText) findViewById(R.id.event_loc);
-        eventTime = (EditText) findViewById(R.id.event_time);
+        eventName = (EditText) findViewById(R.id.new_event_name);
+        eventDesc = (EditText) findViewById(R.id.new_event_descr);
+        eventLoc = (EditText) findViewById(R.id.new_event_loc);
+        eventTime = (EditText) findViewById(R.id.new_event_time);
 
         eventTime.setOnClickListener(new View.OnClickListener() {
             @Override

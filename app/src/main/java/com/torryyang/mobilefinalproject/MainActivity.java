@@ -11,6 +11,8 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +25,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -63,21 +66,41 @@ public class MainActivity extends AppCompatActivity
 
     public void onResume() {
         super.onResume();  // Always call the superclass method first
-        tvData = (TextView)findViewById(R.id.tempShow);
+//        tvData = (TextView)findViewById(R.id.tempShow);
+        ArrayList<Event> events = new ArrayList<Event>();
+        events.add(new Event("Birthday Party", "free cake", "13:54", "180 McCormick Rd, Charlottesville, VA 22903, USA"));
+        events.add(new Event("4th year don't care", "day drink!", "12:00", "Charlottesville, VA 22903, USA"));
+        events.add(new Event("ACM Party", "pancakes!", "17:30", "Rice Hall Information Technology Engineering Building, 85 Engineer's Way, Charlottesville, VA 22903, USA"));
+        events.add(new Event("card games w/ nerds", "soylent", "15:00", "Ash Tree Apartments, Madison Avenue, Charlottesville, VA"));
+        events.add(new Event("music club", "jk day drink!", "16:00", "McIntire Department of Music, Cabell Drive, Charlottesville, VA"));
+        events.add(new Event("really cool dude", "asian food", "11:30", "Uncommon Charlottesville, West Main Street, Charlottesville, VA"));
+        events.add(new Event("psych club", "gatorade", "14:00", "Gilmer Hall, McCormick Road, Charlottesville, VA"));
+        events.add(new Event("AFC partay", "juice", "13:00", "Aquatic & Fitness Center, Whitehead Road, Charlottesville, VA"));
+
         SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
         locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
+
+//        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
+//        locDb.execSQL("INSERT INTO events VALUES('Birthday Party', 'free cake', '13:54', '180 McCormick Rd, Charlottesville, VA 22903, USA');");
+//        locDb.execSQL("INSERT INTO events VALUES('4th year don't care', 'day drink!', '12:00', 'Charlottesville, VA 22903, USA');");
+//        locDb.execSQL("INSERT INTO events VALUES('ACM Party', 'pancakes!', '17:30', 'Rice Hall Information Technology Engineering Building, 85 Engineer's Way, Charlottesville, VA 22903, USA');");
+
         Cursor query = locDb.rawQuery("SELECT * from events",null);
+
         if(query != null) {
-            String curStored = "";
-            while(query.moveToNext()) {
+            while (query.moveToNext()) {
                 String name = query.getString(0);
                 String desc = query.getString(1);
                 String loc = query.getString(2);
                 String time = query.getString(3);
-                curStored += name + ", " + desc + ", " + time + ", " + loc + "\n";
+                events.add(new Event(name,desc,time,loc));
             }
-            tvData.setText(curStored);
+//            tvData.setText(curStored);
         }
+
+//        if(events.size() == 0) {
+//        }
+
 //        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
 //        Cursor query = sqliteDatabase.rawQuery("SELECT * from events",null);
 //        if(query.moveToFirst()) {
@@ -87,6 +110,12 @@ public class MainActivity extends AppCompatActivity
 //            Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
 //        }
         locDb.close();
+
+        RecyclerView rvEvents = (RecyclerView) findViewById(R.id.rvEvents);
+        rvEvents.addItemDecoration(new SimpleDividerItemDecoration(this));
+        EventsAdapter adapter = new EventsAdapter(this,events);
+        rvEvents.setAdapter(adapter);
+        rvEvents.setLayoutManager(new LinearLayoutManager(this));
     }
 
     public class JSONTask extends AsyncTask<String,String,String> {
