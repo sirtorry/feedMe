@@ -1,0 +1,8 @@
+event feed Activity:
+- switched UI to recyclerView
+- gets events from webservice
+
+add event Activity:
+- added popup dialog for time
+- implemented place picker (GPS requirement)
+- sends new event info to webservice
