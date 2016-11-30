@@ -9,10 +9,22 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.torryyang.mobilefinalproject.NewEventActivity">
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/add_pic_but"
+        android:text="Add a photo"/>
+    <ImageView
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:id="@+id/new_event_pic"
+        android:visibility="invisible"
+        android:layout_below="@id/add_pic_but"/>
     <EditText
         android:id="@+id/new_event_name"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/new_event_pic"
         android:hint="@string/event_name"/>
     <EditText
         android:id="@+id/new_event_descr"

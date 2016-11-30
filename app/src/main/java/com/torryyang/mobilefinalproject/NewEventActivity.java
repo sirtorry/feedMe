@@ -4,12 +4,15 @@ import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TimePicker;
 
 import com.google.android.gms.appindexing.Action;
@@ -21,11 +24,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import static android.view.View.VISIBLE;
+
 public class NewEventActivity extends AppCompatActivity {
 
-    Button makeButton;
+    Button makeButton, addImageButton;
     EditText eventName, eventDesc, eventLoc, eventTime;
-    int PLACE_PICKER_REQUEST = 1;
+    ImageView eventImage;
     static final int DIALOG_ID = 0;
     int eventHour, eventMin;
     /**
@@ -33,6 +38,13 @@ public class NewEventActivity extends AppCompatActivity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, 0);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +56,8 @@ public class NewEventActivity extends AppCompatActivity {
         eventDesc = (EditText) findViewById(R.id.new_event_descr);
         eventLoc = (EditText) findViewById(R.id.new_event_loc);
         eventTime = (EditText) findViewById(R.id.new_event_time);
+        eventImage = (ImageView) findViewById(R.id.new_event_pic);
+        addImageButton = (Button) findViewById(R.id.add_pic_but);
 
         eventTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,13 +72,21 @@ public class NewEventActivity extends AppCompatActivity {
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
 
                 try {
-                    startActivityForResult(builder.build(NewEventActivity.this), PLACE_PICKER_REQUEST);
+                    startActivityForResult(builder.build(NewEventActivity.this), 1);
                 } catch (GooglePlayServicesRepairableException e) {
                     e.printStackTrace();
                 } catch (GooglePlayServicesNotAvailableException e) {
                     e.printStackTrace();
                 }
 
+            }
+        });
+
+        addImageButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                dispatchTakePictureIntent();
+                eventImage.setVisibility(VISIBLE);
+                addImageButton.setVisibility(View.GONE);
             }
         });
 
@@ -128,19 +150,26 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == PLACE_PICKER_REQUEST) {
-            if(resultCode == RESULT_OK) {
-                Place place = PlacePicker.getPlace(data,this);
-                String address = place.getAddress().toString();
-                eventLoc.setText(address);
-//                SharedPreferences sharedPreferences =
-//                        PreferenceManager.getDefaultSharedPreferences(this);
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putString(getString(R.string.pref_location_key),address);
-//                editor.commit();
-            }
-        } else {
-            super.onActivityResult(requestCode,resultCode,data);
+        switch(requestCode){
+            case 0:
+                if (resultCode == RESULT_OK) {
+                    Bundle extras = data.getExtras();
+                    Bitmap imageBitmap = (Bitmap) extras.get("data");
+                    eventImage.setImageBitmap(imageBitmap);
+                }
+                break;
+            case 1:
+                if(resultCode == RESULT_OK) {
+                    Place place = PlacePicker.getPlace(data,this);
+                    String address = place.getAddress().toString();
+                    eventLoc.setText(address);
+                    //                SharedPreferences sharedPreferences =
+                    //                        PreferenceManager.getDefaultSharedPreferences(this);
+                    //                SharedPreferences.Editor editor = sharedPreferences.edit();
+                    //                editor.putString(getString(R.string.pref_location_key),address);
+                    //                editor.commit();
+                }
+                break;
         }
     }
 
