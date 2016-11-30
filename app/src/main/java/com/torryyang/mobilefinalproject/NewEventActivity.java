@@ -3,16 +3,19 @@ package com.torryyang.mobilefinalproject;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TimePicker;
 
 import com.google.android.gms.appindexing.Action;
@@ -24,15 +27,18 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
-import static android.view.View.VISIBLE;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class NewEventActivity extends AppCompatActivity {
 
     Button makeButton, addImageButton;
     EditText eventName, eventDesc, eventLoc, eventTime;
-    ImageView eventImage;
     static final int DIALOG_ID = 0;
     int eventHour, eventMin;
+    Uri file;
+    Bitmap tempImage;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -41,8 +47,17 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, 0);
+        file = Uri.fromFile(getOutputMediaFile());
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, file);
+        startActivityForResult(takePictureIntent, 0);
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 0) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                addImageButton.setEnabled(true);
+            }
         }
     }
 
@@ -56,8 +71,12 @@ public class NewEventActivity extends AppCompatActivity {
         eventDesc = (EditText) findViewById(R.id.new_event_descr);
         eventLoc = (EditText) findViewById(R.id.new_event_loc);
         eventTime = (EditText) findViewById(R.id.new_event_time);
-        eventImage = (ImageView) findViewById(R.id.new_event_pic);
         addImageButton = (Button) findViewById(R.id.add_pic_but);
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            addImageButton.setEnabled(false);
+            ActivityCompat.requestPermissions(this, new String[] { android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE }, 0);
+        }
 
         eventTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,8 +104,6 @@ public class NewEventActivity extends AppCompatActivity {
         addImageButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 dispatchTakePictureIntent();
-                eventImage.setVisibility(VISIBLE);
-                addImageButton.setVisibility(View.GONE);
             }
         });
 
@@ -107,7 +124,6 @@ public class NewEventActivity extends AppCompatActivity {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
-
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -153,9 +169,12 @@ public class NewEventActivity extends AppCompatActivity {
         switch(requestCode){
             case 0:
                 if (resultCode == RESULT_OK) {
-                    Bundle extras = data.getExtras();
-                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    eventImage.setImageBitmap(imageBitmap);
+                    try {
+                        tempImage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), file);
+                        addImageButton.setText("Photo attached. Click to change.");
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
                 break;
             case 1:
@@ -171,6 +190,21 @@ public class NewEventActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    private static File getOutputMediaFile(){
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "MobileFinal");
+
+        if (!mediaStorageDir.exists()){
+            if (!mediaStorageDir.mkdirs()){
+                return null;
+            }
+        }
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        return new File(mediaStorageDir.getPath() + File.separator +
+                "IMG_"+ timeStamp + ".jpg");
     }
 
     @Override
