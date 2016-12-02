@@ -3,11 +3,13 @@ package com.torryyang.mobilefinalproject;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,25 +17,26 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import com.facebook.stetho.Stetho;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private TextView tvData;
+//    private TextView tvData;
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +73,73 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+        Cursor query = locDb.rawQuery("SELECT * from events",null);
+        ArrayList<Event> events = new ArrayList<Event>();
+        if(query == null) {
+            new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created");
+        }
+        else {
+            while (query.moveToNext()) {
+                String name = query.getString(0);
+                String desc = query.getString(1);
+                String loc = query.getString(2);
+                String time = query.getString(3);
+                String img = query.getString(4);
+                events.add(new Event(name,desc,time,loc,img));
+            }
+        }
+        locDb.close();
+
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        RecyclerView rvEvents = (RecyclerView) findViewById(R.id.rvEvents);
+        rvEvents.addItemDecoration(new SimpleDividerItemDecoration(this));
+        EventsAdapter adapter = new EventsAdapter(this,events);
+        rvEvents.setAdapter(adapter);
+        rvEvents.setLayoutManager(new LinearLayoutManager(this));
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Refresh items
+                refreshItems();
+            }
+        });
     }
+
+    void refreshItems() {
+        ArrayList<Event> events = new ArrayList<Event>();
+        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+        Cursor query = locDb.rawQuery("SELECT * from events",null);
+        if(query != null) {
+            while (query.moveToNext()) {
+                String name = query.getString(0);
+                String desc = query.getString(1);
+                String loc = query.getString(2);
+                String time = query.getString(3);
+                String img = query.getString(4);
+                events.add(new Event(name,desc,time,loc,img));
+            }
+        }
+        locDb.close();
+        onItemsLoadComplete(events);
+    }
+    void onItemsLoadComplete(ArrayList<Event> events) {
+        EventsAdapter adapter = new EventsAdapter(this,events);
+        RecyclerView rvEvents = (RecyclerView) findViewById(R.id.rvEvents);
+        rvEvents.setAdapter(adapter);
+        rvEvents.invalidate();
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
+
 
     public void onResume() {
         super.onResume();  // Always call the superclass method first
+        refreshItems();
 //        tvData = (TextView)findViewById(R.id.tempShow);
-        ArrayList<Event> events = new ArrayList<Event>();
+//        ArrayList<Event> events = new ArrayList<Event>();
 //        events.add(new Event("Birthday Party", "free cake", "13:54", "180 McCormick Rd, Charlottesville, VA 22903, USA", "http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
 //        events.add(new Event("4th year don't care", "day drink!", "12:00", "Charlottesville, VA 22903, USA", "http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
 //        events.add(new Event("ACM Party", "pancakes!", "17:30", "Rice Hall Information Technology Engineering Building, 85 Engineer's Way, Charlottesville, VA 22903, USA", "http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
@@ -85,40 +149,43 @@ public class MainActivity extends AppCompatActivity
 //        events.add(new Event("psych club", "gatorade", "14:00", "Gilmer Hall, McCormick Road, Charlottesville, VA","http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
 //        events.add(new Event("AFC partay", "juice", "13:00", "Aquatic & Fitness Center, Whitehead Road, Charlottesville, VA","http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
 
-        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+//        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+//        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
 
 //        locDb.execSQL("INSERT INTO events VALUES('testEvent', 'this is a test event', 'nowhere', '13:54 06/11/16');");
 //        locDb.execSQL("INSERT INTO events VALUES('Birthday Party', 'free cake', '13:54', '180 McCormick Rd, Charlottesville, VA 22903, USA');");
 //        locDb.execSQL("INSERT INTO events VALUES('4th year don't care', 'day drink!', '12:00', 'Charlottesville, VA 22903, USA');");
 //        locDb.execSQL("INSERT INTO events VALUES('ACM Party', 'pancakes!', '17:30', 'Rice Hall Information Technology Engineering Building, 85 Engineer's Way, Charlottesville, VA 22903, USA');");
 
-
-        String jsonString = callURL("http://plato.cs.virginia.edu/~psa5dg/created");
-        try {
-            JSONArray jsonArray = new JSONArray(jsonString);
-            int count = jsonArray.length();
-            for(int i=0 ; i< count; i++){   // iterate through jsonArray
-                JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
-                String name = jsonObject.getString("event_title");
-                String desc = jsonObject.getString("event_description");
-                String loc = jsonObject.getString("event_location");
-                String time = jsonObject.getString("event_post_time");
-                String imgUrl = jsonObject.getString("event_image_url");
-                locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        Cursor query = locDb.rawQuery("SELECT * from events",null);
-        while (query.moveToNext()) {
-            String name = query.getString(0);
-            String desc = query.getString(1);
-            String loc = query.getString(2);
-            String time = query.getString(3);
-            String img = query.getString(4);
-            events.add(new Event(name,desc,time,loc,img));
-        }
+//        String jsonString = callURL("http://plato.cs.virginia.edu/~psa5dg/created");
+//        try {
+//
+//            JSONArray jsonArray = new JSONArray(jsonString);
+//            int count = jsonArray.length();
+//            for(int i=0 ; i< count; i++){   // iterate through jsonArray
+//                JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
+//                String name = jsonObject.getString("event_title");
+//                String desc = jsonObject.getString("event_description");
+//                String loc = jsonObject.getString("event_location");
+//                String time = jsonObject.getString("event_post_time");
+//                String imgUrl = jsonObject.getString("event_image_url");
+//                locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+//            }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        Cursor query = locDb.rawQuery("SELECT * from events",null);
+//        if(query != null) {
+//            while (query.moveToNext()) {
+//                String name = query.getString(0);
+//                String desc = query.getString(1);
+//                String loc = query.getString(2);
+//                String time = query.getString(3);
+//                String img = query.getString(4);
+//                events.add(new Event(name,desc,time,loc,img));
+//            }
+//        }
+//        locDb.close();
 //            tvData.setText(curStored);
 
 //        if(events.size() == 0) {
@@ -132,63 +199,76 @@ public class MainActivity extends AppCompatActivity
 //        } else {
 //            Toast.makeText(getBaseContext(),"error",Toast.LENGTH_LONG).show();
 //        }
-        locDb.close();
 
-        RecyclerView rvEvents = (RecyclerView) findViewById(R.id.rvEvents);
-        rvEvents.addItemDecoration(new SimpleDividerItemDecoration(this));
-        EventsAdapter adapter = new EventsAdapter(this,events);
-        rvEvents.setAdapter(adapter);
-        rvEvents.setLayoutManager(new LinearLayoutManager(this));
+//        RecyclerView rvEvents = (RecyclerView) findViewById(R.id.rvEvents);
+//        rvEvents.addItemDecoration(new SimpleDividerItemDecoration(this));
+//        EventsAdapter adapter = new EventsAdapter(this,events);
+//        rvEvents.setAdapter(adapter);
+//        rvEvents.setLayoutManager(new LinearLayoutManager(this));
     }
 
-//    public class JSONTask extends AsyncTask<String,String,String> {
-//        @Override
-//        protected String doInBackground(String... params) {
-//            HttpURLConnection connection = null;
-//            BufferedReader reader = null;
-//            try {
-//                URL url = new URL(params[0]);
-//                connection = (HttpURLConnection) url.openConnection();
-//                connection.connect();
-//
-//                InputStream stream = connection.getInputStream();
-//
-//                reader = new BufferedReader(new InputStreamReader(stream));
-//
-//                StringBuffer buffer = new StringBuffer();
-//
-//                String line = "";
-//                while ((line = reader.readLine()) != null) {
-//                    buffer.append(line);
-//                }
-//                return buffer.toString();
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } finally {
-//                if(connection != null) {
-//                    connection.disconnect();
-//                }
-//                try {
-//                    if(reader != null) {
-//                        reader.close();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            return null;
-//        }
-//        @Override
-//        protected void onPostExecute(String result) {
-//            super.onPostExecute(result);
-//            tvData.setText(result);
-//        }
-//    }
+    public class JSONTask extends AsyncTask<String,String,String> {
+        @Override
+        protected String doInBackground(String... params) {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
 
-    public void addNewEvents() {
-        //to-do
+                InputStream stream = connection.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                StringBuffer buffer = new StringBuffer();
+
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+                return buffer.toString();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if(connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if(reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+        @Override
+
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            try {
+                JSONArray jsonArray = new JSONArray(result);
+                int count = jsonArray.length();
+                for(int i=0 ; i< count; i++){   // iterate through jsonArray
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
+                    String name = jsonObject.getString("event_title");
+                    String desc = jsonObject.getString("event_description");
+                    String loc = jsonObject.getString("event_location");
+                    String time = jsonObject.getString("event_post_time");
+                    String imgUrl = jsonObject.getString("event_image_url");
+                    SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                    refreshItems();
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -223,34 +303,34 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public static String callURL(String myURL) {
-        StringBuilder sb = new StringBuilder();
-        URLConnection urlConn = null;
-        InputStreamReader in = null;
-        try {
-            URL url = new URL(myURL);
-            urlConn = url.openConnection();
-            if (urlConn != null)
-                urlConn.setReadTimeout(60 * 1000);
-            if (urlConn != null && urlConn.getInputStream() != null) {
-                in = new InputStreamReader(urlConn.getInputStream(),
-                        Charset.defaultCharset());
-                BufferedReader bufferedReader = new BufferedReader(in);
-                if (bufferedReader != null) {
-                    int cp;
-                    while ((cp = bufferedReader.read()) != -1) {
-                        sb.append((char) cp);
-                    }
-                    bufferedReader.close();
-                }
-            }
-            in.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Exception while calling URL:"+ myURL, e);
-        }
-
-        return sb.toString();
-    }
+//    public static String callURL(String myURL) {
+//        StringBuilder sb = new StringBuilder();
+//        URLConnection urlConn = null;
+//        InputStreamReader in = null;
+//        try {
+//            URL url = new URL(myURL);
+//            urlConn = url.openConnection();
+//            if (urlConn != null)
+//                urlConn.setReadTimeout(60 * 1000);
+//            if (urlConn != null && urlConn.getInputStream() != null) {
+//                in = new InputStreamReader(urlConn.getInputStream(),
+//                        Charset.defaultCharset());
+//                BufferedReader bufferedReader = new BufferedReader(in);
+//                if (bufferedReader != null) {
+//                    int cp;
+//                    while ((cp = bufferedReader.read()) != -1) {
+//                        sb.append((char) cp);
+//                    }
+//                    bufferedReader.close();
+//                }
+//            }
+//            in.close();
+//        } catch (Exception e) {
+//            throw new RuntimeException("Exception while calling URL:"+ myURL, e);
+//        }
+//
+//        return sb.toString();
+//    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override

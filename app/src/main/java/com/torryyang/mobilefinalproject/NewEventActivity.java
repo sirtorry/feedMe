@@ -54,6 +54,7 @@ public class NewEventActivity extends AppCompatActivity {
     String name,desc,loc,time,imgUrl;
     Bitmap tempImage;
     FirebaseStorage storage = FirebaseStorage.getInstance();
+    Boolean imageAdded = false;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -130,36 +131,57 @@ public class NewEventActivity extends AppCompatActivity {
                 loc = eventLoc.getText().toString();
                 time = eventTime.getText().toString();
 
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
-                byte[] imgData = baos.toByteArray();
-                String path = "eventImages/" + UUID.randomUUID() + ".png";
-                StorageReference eventImageRef = storage.getReference(path);
-                StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
-                UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
-                uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        imgUrl = taskSnapshot.getDownloadUrl().toString();
-                        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
-                        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
-                        locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
-                        locDb.close();
-                        JSONObject obj = new JSONObject();
-                        try {
-                            obj.put("event_title", name);
-                            obj.put("event_description",desc);
-                            obj.put("event_location",loc);
-                            obj.put("event_start_time",time);
-                            obj.put("event_image_url",imgUrl);
-                            obj.put("user_id",1);
-                            excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
-                        } catch(Exception e) {
-                            e.printStackTrace();
+                if(imageAdded) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
+                    byte[] imgData = baos.toByteArray();
+                    String path = "eventImages/" + UUID.randomUUID() + ".png";
+                    StorageReference eventImageRef = storage.getReference(path);
+                    StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
+                    UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
+                    uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            imgUrl = taskSnapshot.getDownloadUrl().toString();
+                            SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
+                            locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+                            locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                            locDb.close();
+                            JSONObject obj = new JSONObject();
+                            try {
+                                obj.put("event_title", name);
+                                obj.put("event_description",desc);
+                                obj.put("event_location",loc);
+                                obj.put("event_start_time",time);
+                                obj.put("event_image_url",imgUrl);
+                                obj.put("user_id",1);
+                                excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
+                            } catch(Exception e) {
+                                e.printStackTrace();
+                            }
+                            finish();
                         }
-                        finish();
+                    });
+                }
+                else{
+                    SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
+                    locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                    locDb.close();
+                    JSONObject obj = new JSONObject();
+                    try {
+                        obj.put("event_title", name);
+                        obj.put("event_description",desc);
+                        obj.put("event_location",loc);
+                        obj.put("event_start_time",time);
+                        obj.put("event_image_url",imgUrl);
+                        obj.put("user_id",1);
+                        excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
+                    } catch(Exception e) {
+                        e.printStackTrace();
                     }
-                });
+                    finish();
+                }
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -214,6 +236,7 @@ public class NewEventActivity extends AppCompatActivity {
                     try {
                         tempImage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), file);
                         addImageButton.setText("Photo attached. Click to change.");
+                        imageAdded = true;
                     } catch (Exception e){
                         e.printStackTrace();
                     }
