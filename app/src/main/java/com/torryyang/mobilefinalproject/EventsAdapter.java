@@ -1,6 +1,7 @@
 package com.torryyang.mobilefinalproject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,13 +17,30 @@ import java.util.List;
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder> {
 
-    public static class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public TextView eventName;
+        private Context context;
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(Context context, View itemView) {
             super(itemView);
 
             eventName = (TextView) itemView.findViewById(R.id.event_name);
+            this.context = context;
+            itemView.setOnClickListener(this);
+        }
+        public void onClick(View view) {
+            int position = getAdapterPosition(); // gets item position
+            if (position != RecyclerView.NO_POSITION) { // Check if an item was deleted, but the user clicked it before the UI removed it
+                Event event = mEvents.get(position);
+                // We can access the data within the views
+                Intent intent = new Intent(context,EventInfoActivity.class);
+                intent.putExtra("name", event.getName());
+                intent.putExtra("desc", event.getDesc());
+                intent.putExtra("time", event.getTime());
+                intent.putExtra("loc", event.getLoc());
+                intent.putExtra("img",event.getImg());
+                context.startActivity(intent);
+            }
         }
     }
 
@@ -43,7 +61,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View eventView = inflater.inflate(R.layout.item_event,parent,false);
-        ViewHolder viewHolder = new ViewHolder(eventView);
+        ViewHolder viewHolder = new ViewHolder(context,eventView);
         return viewHolder;
     }
 

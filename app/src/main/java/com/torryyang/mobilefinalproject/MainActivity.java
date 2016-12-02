@@ -318,17 +318,15 @@ public class MainActivity extends AppCompatActivity
                 JSONArray jsonArray = new JSONArray(result);
                 int count = jsonArray.length();
                 SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-                for(int i=0 ; i< count; i++){   // iterate through jsonArray
+                for(int i=0 ; i< count; i++) {   // iterate through jsonArray
                     JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
                     String name = jsonObject.getString("event_title");
                     String desc = jsonObject.getString("event_description");
                     String loc = jsonObject.getString("event_location");
                     String time = jsonObject.getString("event_post_time");
                     String imgUrl = jsonObject.getString("event_image_url");
-//                    lastEventId = Integer.parseInt(jsonObject.getString("event_id"));
-                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                    refreshItems();
                 }
-                refreshItems();
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -403,15 +401,9 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_manage) {
+        if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 
