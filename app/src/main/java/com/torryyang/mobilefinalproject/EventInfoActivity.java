@@ -25,8 +25,11 @@ public class EventInfoActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle bd = intent.getExtras();
         if(bd != null) {
-            new DownloadImageTask((ImageView) findViewById(R.id.info_image))
-                    .execute((String) bd.get("img"));
+            String imgUrl = (String) bd.get("img");
+            if (imgUrl != "NULL") {
+                new DownloadImageTask((ImageView) findViewById(R.id.info_image))
+                        .execute(imgUrl);
+            }
             setTitle((String) bd.get("name"));
             infoDesc.setText(Html.fromHtml("<b><big>" + "What? "  + "</big></b>" + (String) bd.get("desc")));
             infoTime.setText(Html.fromHtml("<b><big>" + "When? "  + "</big></b>" + (String) bd.get("time")));

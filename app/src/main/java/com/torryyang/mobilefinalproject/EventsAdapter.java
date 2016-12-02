@@ -3,6 +3,7 @@ package com.torryyang.mobilefinalproject;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +19,15 @@ import java.util.List;
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public TextView eventName;
+        public TextView eventName,eventDesc,eventTime;
         private Context context;
 
         public ViewHolder(Context context, View itemView) {
             super(itemView);
 
             eventName = (TextView) itemView.findViewById(R.id.event_name);
+            eventDesc = (TextView) itemView.findViewById(R.id.event_desc);
+            eventTime = (TextView) itemView.findViewById(R.id.event_time);
             this.context = context;
             itemView.setOnClickListener(this);
         }
@@ -68,8 +71,12 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
     public void onBindViewHolder(EventsAdapter.ViewHolder viewHolder, int position) {
         Event event = mEvents.get(position);
 
-        TextView textView = viewHolder.eventName;
-        textView.setText(event.getName() + " | " + event.getDesc() + " | " + event.getTime() +  " | "  + event.getLoc() + " | "  + event.getImg());
+        TextView textName = viewHolder.eventName;
+        TextView textDesc = viewHolder.eventDesc;
+        TextView textTime = viewHolder.eventTime;
+        textName.setText(Html.fromHtml("<b>" + event.getName() + "</b>"));
+        textDesc.setText(event.getDesc());
+        textTime.setText(event.getTime());
     }
 
     public int getItemCount() {

@@ -144,8 +144,8 @@ public class NewEventActivity extends AppCompatActivity {
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             imgUrl = taskSnapshot.getDownloadUrl().toString();
                             SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
-                            locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
-                            locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                            locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
+                            locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "','" + "1" + "');");
                             locDb.close();
                             JSONObject obj = new JSONObject();
                             try {
@@ -165,8 +165,8 @@ public class NewEventActivity extends AppCompatActivity {
                 }
                 else{
                     SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
-                    locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
-                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                    locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
+                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl +  "','" + "1" + "');");
                     locDb.close();
                     JSONObject obj = new JSONObject();
                     try {

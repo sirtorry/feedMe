@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity
 
         ArrayList<Event> events = new ArrayList<Event>();
         SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
         Cursor query = locDb.rawQuery("SELECT * from events",null);
         Cursor mcursor = locDb.rawQuery("SELECT count(*) FROM events", null);
         mcursor.moveToFirst();
@@ -94,7 +94,6 @@ public class MainActivity extends AppCompatActivity
             }
         } else {
             new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created");
-            Toast.makeText(getBaseContext(),"populating DB",Toast.LENGTH_LONG).show();
         }
         locDb.close();
 
@@ -116,7 +115,7 @@ public class MainActivity extends AppCompatActivity
     void refreshItems() {
         ArrayList<Event> events = new ArrayList<Event>();
         SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
         Cursor query = locDb.rawQuery("SELECT * from events",null);
         if(query != null) {
             while (query.moveToNext()) {
