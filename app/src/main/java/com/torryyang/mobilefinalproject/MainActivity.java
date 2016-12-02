@@ -17,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
 
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity
 
 //    private TextView tvData;
     SwipeRefreshLayout mSwipeRefreshLayout;
+    int lastEventId = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,14 +76,14 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        ArrayList<Event> events = new ArrayList<Event>();
         SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
         locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
         Cursor query = locDb.rawQuery("SELECT * from events",null);
-        ArrayList<Event> events = new ArrayList<Event>();
-        if(query == null) {
-            new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created");
-        }
-        else {
+        Cursor mcursor = locDb.rawQuery("SELECT count(*) FROM events", null);
+        mcursor.moveToFirst();
+        int icount = mcursor.getInt(0);
+        if(icount > 0) {
             while (query.moveToNext()) {
                 String name = query.getString(0);
                 String desc = query.getString(1);
@@ -90,6 +92,9 @@ public class MainActivity extends AppCompatActivity
                 String img = query.getString(4);
                 events.add(new Event(name,desc,time,loc,img));
             }
+        } else {
+            new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created");
+            Toast.makeText(getBaseContext(),"populating DB",Toast.LENGTH_LONG).show();
         }
         locDb.close();
 
@@ -207,6 +212,64 @@ public class MainActivity extends AppCompatActivity
 //        rvEvents.setLayoutManager(new LinearLayoutManager(this));
     }
 
+    public void getNew(int n) {
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+        String res = null;
+        try {
+            URL url = new URL("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(n));
+            connection = (HttpURLConnection) url.openConnection();
+            connection.connect();
+
+            InputStream stream = connection.getInputStream();
+
+            reader = new BufferedReader(new InputStreamReader(stream));
+
+            StringBuffer buffer = new StringBuffer();
+
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line);
+            }
+            res = buffer.toString();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if(connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if(reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(res != null){
+            try {
+                JSONArray jsonArray = new JSONArray(res);
+                int count = jsonArray.length();
+                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+                for(int i=0 ; i< count; i++){   // iterate through jsonArray
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
+                    String name = jsonObject.getString("event_title");
+                    String desc = jsonObject.getString("event_description");
+                    String loc = jsonObject.getString("event_location");
+                    String time = jsonObject.getString("event_post_time");
+                    String imgUrl = jsonObject.getString("event_image_url");
+                    lastEventId = Integer.parseInt(jsonObject.getString("event_id"));
+                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                }
+                refreshItems();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public class JSONTask extends AsyncTask<String,String,String> {
         @Override
         protected String doInBackground(String... params) {
@@ -254,6 +317,7 @@ public class MainActivity extends AppCompatActivity
             try {
                 JSONArray jsonArray = new JSONArray(result);
                 int count = jsonArray.length();
+                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
                 for(int i=0 ; i< count; i++){   // iterate through jsonArray
                     JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
                     String name = jsonObject.getString("event_title");
@@ -261,13 +325,14 @@ public class MainActivity extends AppCompatActivity
                     String loc = jsonObject.getString("event_location");
                     String time = jsonObject.getString("event_post_time");
                     String imgUrl = jsonObject.getString("event_image_url");
-                    SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+//                    lastEventId = Integer.parseInt(jsonObject.getString("event_id"));
                     locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
-                    refreshItems();
                 }
+                refreshItems();
             } catch(Exception e) {
                 e.printStackTrace();
             }
+            Toast.makeText(getBaseContext(),Integer.toString(lastEventId),Toast.LENGTH_LONG).show();
         }
     }
 
