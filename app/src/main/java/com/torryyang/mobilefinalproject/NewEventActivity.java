@@ -26,10 +26,23 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 public class NewEventActivity extends AppCompatActivity {
 
@@ -38,7 +51,9 @@ public class NewEventActivity extends AppCompatActivity {
     static final int DIALOG_ID = 0;
     int eventHour, eventMin;
     Uri file;
+    String name,desc,loc,time,imgUrl;
     Bitmap tempImage;
+    FirebaseStorage storage = FirebaseStorage.getInstance();
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -66,7 +81,7 @@ public class NewEventActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
-        Button makeButton = (Button) findViewById(R.id.add_event_button);
+        makeButton = (Button) findViewById(R.id.add_event_button);
         eventName = (EditText) findViewById(R.id.new_event_name);
         eventDesc = (EditText) findViewById(R.id.new_event_descr);
         eventLoc = (EditText) findViewById(R.id.new_event_loc);
@@ -109,15 +124,42 @@ public class NewEventActivity extends AppCompatActivity {
 
         makeButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                String name = eventName.getText().toString();
-                String desc = eventDesc.getText().toString();
-                String loc = eventLoc.getText().toString();
-                String time = eventTime.getText().toString();
-                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
-                locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT);");
-                locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + loc + "','" + time + "');");
-                locDb.close();
-                finish();
+
+                name = eventName.getText().toString();
+                desc = eventDesc.getText().toString();
+                loc = eventLoc.getText().toString();
+                time = eventTime.getText().toString();
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
+                byte[] imgData = baos.toByteArray();
+                String path = "eventImages/" + UUID.randomUUID() + ".png";
+                StorageReference eventImageRef = storage.getReference(path);
+                StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
+                UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
+                uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        imgUrl = taskSnapshot.getDownloadUrl().toString();
+                        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db", MODE_PRIVATE, null);
+                        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT);");
+                        locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
+                        locDb.close();
+                        JSONObject obj = new JSONObject();
+                        try {
+                            obj.put("event_title", name);
+                            obj.put("event_description",desc);
+                            obj.put("event_location",loc);
+                            obj.put("event_start_time",time);
+                            obj.put("event_image_url",imgUrl);
+                            obj.put("user_id",1);
+                            excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                        finish();
+                    }
+                });
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -215,5 +257,48 @@ public class NewEventActivity extends AppCompatActivity {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
+    }
+
+    public static Boolean excutePost(String targetURL, JSONObject jsonParam)
+    {
+        URL url;
+        HttpURLConnection connection = null;
+        try {
+            url = new URL(targetURL);
+            connection = (HttpURLConnection)url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST"); // hear you are telling that it is a POST request, which can be changed into "PUT", "GET", "DELETE" etc.
+            connection.setRequestProperty("Content-Type", "application/json"); // here you are setting the `Content-Type` for the data you are sending which is `application/json`
+            connection.connect();
+
+            //Send request
+            DataOutputStream wr = new DataOutputStream(
+                    connection.getOutputStream ());
+            wr.writeBytes(jsonParam.toString());
+            wr.flush();
+            wr.close ();
+
+            InputStream is;
+            int response = connection.getResponseCode();
+            if (response >= 200 && response <=399){
+                //return is = connection.getInputStream();
+                return true;
+            } else {
+                //return is = connection.getErrorStream();
+                return false;
+            }
+
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return false;
+
+        } finally {
+
+            if(connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 }

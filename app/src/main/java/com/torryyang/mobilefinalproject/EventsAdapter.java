@@ -51,7 +51,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
         Event event = mEvents.get(position);
 
         TextView textView = viewHolder.eventName;
-        textView.setText(event.getName() + " | " + event.getDesc() + " | " + event.getTime() +  " | "  + event.getLoc());
+        textView.setText(event.getName() + " | " + event.getDesc() + " | " + event.getTime() +  " | "  + event.getLoc() + " | "  + event.getImg());
     }
 
     public int getItemCount() {
