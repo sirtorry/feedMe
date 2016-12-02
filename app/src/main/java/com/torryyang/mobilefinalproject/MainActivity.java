@@ -87,8 +87,8 @@ public class MainActivity extends AppCompatActivity
             while (query.moveToNext()) {
                 String name = query.getString(0);
                 String desc = query.getString(1);
-                String loc = query.getString(2);
-                String time = query.getString(3);
+                String time = query.getString(2);
+                String loc = query.getString(3);
                 String img = query.getString(4);
                 events.add(new Event(name,desc,time,loc,img));
             }
@@ -122,8 +122,8 @@ public class MainActivity extends AppCompatActivity
             while (query.moveToNext()) {
                 String name = query.getString(0);
                 String desc = query.getString(1);
-                String loc = query.getString(2);
-                String time = query.getString(3);
+                String time = query.getString(2);
+                String loc = query.getString(3);
                 String img = query.getString(4);
                 events.add(new Event(name,desc,time,loc,img));
             }
