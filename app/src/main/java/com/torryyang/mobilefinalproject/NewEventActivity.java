@@ -207,9 +207,15 @@ public class NewEventActivity extends AppCompatActivity {
     protected TimePickerDialog.OnTimeSetListener timePickerListener = new TimePickerDialog.OnTimeSetListener() {
         @Override
         public void onTimeSet(TimePicker timePicker, int hourOfDay, int minOfHour) {
-            eventHour = hourOfDay;
-            eventMin = minOfHour;
-            eventTime.setText(eventHour + ":" + eventMin);
+            String hh = Integer.toString(hourOfDay);
+            String mm = Integer.toString(minOfHour);
+            if(hh.length() < 2) {
+                hh = "0" + hh;
+            }
+            if(mm.length() < 2) {
+                mm = "0" + mm;
+            }
+            eventTime.setText(hh + ":" + mm);
         }
     };
 

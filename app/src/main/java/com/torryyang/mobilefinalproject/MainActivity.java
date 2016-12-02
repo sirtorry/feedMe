@@ -17,7 +17,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
 
@@ -324,12 +323,14 @@ public class MainActivity extends AppCompatActivity
                     String loc = jsonObject.getString("event_location");
                     String time = jsonObject.getString("event_post_time");
                     String imgUrl = jsonObject.getString("event_image_url");
-                    refreshItems();
+                    String eventId = jsonObject.getString("event_id");
+                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl +  "','" + eventId + "');");
                 }
+                refreshItems();
             } catch(Exception e) {
                 e.printStackTrace();
             }
-            Toast.makeText(getBaseContext(),Integer.toString(lastEventId),Toast.LENGTH_LONG).show();
+//            Toast.makeText(getBaseContext(),Integer.toString(lastEventId),Toast.LENGTH_LONG).show();
         }
     }
 
