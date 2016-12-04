@@ -26,11 +26,11 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -298,11 +298,11 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private class postEvent extends AsyncTask<Void, Void, Void> {
-        String name,desc,time,loc;
+        String name,desc,time,loc,imgUrl;
         Bitmap tempImage;
         Boolean imgAdded;
 
-        public postEvent(String name, String desc,String time,String loc,Bitmap tempImage,Boolean imgAdded) {
+        public postEvent(String name,String desc,String time,String loc,Bitmap tempImage,Boolean imgAdded) {
             this.name = name;
             this.desc = desc;
             this.time = time;
@@ -320,13 +320,38 @@ public class NewEventActivity extends AppCompatActivity {
                 StorageReference eventImageRef = storage.getReference(path);
                 StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
                 UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
-//                uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                    @Override
-//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        String imgUrl = taskSnapshot.getDownloadUrl().toString();
-//                    }
-//                });
+                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        imgUrl = taskSnapshot.getDownloadUrl().toString();
+                        JSONObject obj = new JSONObject();
+                        try {
+                            obj.put("event_title", name);
+                            obj.put("event_description",desc);
+                            obj.put("event_location",loc);
+                            obj.put("event_start_time",time);
+                            obj.put("event_image_url",imgUrl);
+                            obj.put("user_id",1);
+                            excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
 
+            } else {
+                JSONObject obj = new JSONObject();
+                try {
+                    obj.put("event_title", name);
+                    obj.put("event_description",desc);
+                    obj.put("event_location",loc);
+                    obj.put("event_start_time",time);
+                    obj.put("event_image_url",imgUrl);
+                    obj.put("user_id",1);
+                    excutePost("http://plato.cs.virginia.edu/~psa5dg/create",obj);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
             return null;
         }

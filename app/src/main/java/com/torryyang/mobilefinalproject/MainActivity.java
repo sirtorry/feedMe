@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity
                     String name = jsonObject.getString("event_title");
                     String desc = jsonObject.getString("event_description");
                     String loc = jsonObject.getString("event_location");
-                    String time = jsonObject.getString("event_post_time");
+                    String time = jsonObject.getString("event_start_time");
                     String imgUrl = jsonObject.getString("event_image_url");
                     String eventId = jsonObject.getString("event_id");
                     locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl +  "','" + eventId + "');");
