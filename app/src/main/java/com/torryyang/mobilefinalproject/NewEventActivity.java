@@ -76,6 +76,15 @@ public class NewEventActivity extends AppCompatActivity {
         }
     }
 
+//    public void onSaveInstanceState(Bundle savedInstanceState) {
+//        // Save the user's current game state
+//        savedInstanceState.putInt(PLAYER_SCORE, mCurrentScore);
+//        savedInstanceState.putInt(PLAYER_LEVEL, mCurrentLevel);
+//
+//        // Always call the superclass so it can save the view hierarchy state
+//        super.onSaveInstanceState(savedInstanceState);
+//    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

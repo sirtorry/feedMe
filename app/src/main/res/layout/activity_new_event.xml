@@ -1,56 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.torryyang.mobilefinalproject.NewEventActivity">
-
-    <Button
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/add_pic_but"
-        android:text="Add a photo"/>
-    <ImageView
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        android:id="@+id/new_event_pic"
-        android:visibility="invisible"
-        android:layout_below="@id/add_pic_but"/>
-    <EditText
-        android:id="@+id/new_event_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_event_pic"
-        android:hint="@string/event_name"/>
-    <EditText
-        android:id="@+id/new_event_descr"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_event_name"
-        android:hint="@string/event_descr"/>
-    <EditText
-        android:id="@+id/new_event_time"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_event_descr"
-        android:focusable="false"
-        android:hint="@string/event_time"/>
-    <EditText
-        android:id="@+id/new_event_loc"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_event_time"
-        android:focusable="false"
-        android:hint="@string/event_loc"/>
-    <Button
-        android:id="@+id/add_event_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/new_event_loc"
-        android:text="Make Event"/>
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
 
-</RelativeLayout>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/add_pic_but"
+            android:text="Add a photo"/>
+        <ImageView
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:id="@+id/new_event_pic"
+            android:visibility="invisible"
+            android:layout_below="@id/add_pic_but"/>
+        <EditText
+            android:id="@+id/new_event_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_event_pic"
+            android:hint="@string/event_name"/>
+        <EditText
+            android:id="@+id/new_event_descr"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_event_name"
+            android:hint="@string/event_descr"/>
+        <EditText
+            android:id="@+id/new_event_time"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_event_descr"
+            android:focusable="false"
+            android:hint="@string/event_time"/>
+        <EditText
+            android:id="@+id/new_event_loc"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_event_time"
+            android:focusable="false"
+            android:hint="@string/event_loc"/>
+        <Button
+            android:id="@+id/add_event_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_event_loc"
+            android:text="Make Event"/>
+
+    </RelativeLayout>
+</ScrollView>
