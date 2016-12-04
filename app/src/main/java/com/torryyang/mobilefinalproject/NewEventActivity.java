@@ -80,8 +80,10 @@ public class NewEventActivity extends AppCompatActivity {
 
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state
-        savedInstanceState.putString("file", file.toString());
         savedInstanceState.putBoolean("imageAdded", imageAdded);
+        if(imageAdded) {
+            savedInstanceState.putString("file", file.toString());
+        }
 
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
@@ -100,15 +102,15 @@ public class NewEventActivity extends AppCompatActivity {
         addImageButton = (Button) findViewById(R.id.add_pic_but);
 
         if (savedInstanceState != null) {
-            file = Uri.parse(savedInstanceState.getString("file"));
             imageAdded = savedInstanceState.getBoolean("imageAdded");
-            try {
-                tempImage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), file);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             if(imageAdded) {
-                addImageButton.setText("Photo attached. Click to change.");
+                file = Uri.parse(savedInstanceState.getString("file"));
+                try {
+                    tempImage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), file);
+                    addImageButton.setText("Photo attached. Click to change.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
