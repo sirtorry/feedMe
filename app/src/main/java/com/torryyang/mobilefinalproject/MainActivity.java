@@ -91,6 +91,11 @@ public class MainActivity extends AppCompatActivity
                 String img = query.getString(4);
                 events.add(new Event(name,desc,time,loc,img));
             }
+            query.moveToLast();
+            lastEventId = Integer.valueOf(query.getString(5));
+        } else {
+            locDb.execSQL("INSERT INTO events VALUES('" + "test event" + "','" + "test description" + "','" + "10:10" + "','" + "nowhere" + "','" + "NULL" +  "','" + "1" + "');");
+            events.add(new Event("test","test", "test","test","NULL"));
         }
         locDb.close();
 
@@ -100,6 +105,7 @@ public class MainActivity extends AppCompatActivity
         EventsAdapter adapter = new EventsAdapter(this,events);
         rvEvents.setAdapter(adapter);
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
+//        new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(lastEventId));
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -109,6 +115,7 @@ public class MainActivity extends AppCompatActivity
                 Cursor query = locDb.rawQuery("SELECT * from events",null);
                 query.moveToLast();
                 lastEventId = Integer.valueOf(query.getString(5));
+                locDb.close();
                 new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(lastEventId));
             }
         });
@@ -148,6 +155,7 @@ public class MainActivity extends AppCompatActivity
         Cursor query = locDb.rawQuery("SELECT * from events",null);
         query.moveToLast();
         lastEventId = Integer.valueOf(query.getString(5));
+        locDb.close();
         new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(lastEventId));
 //        tvData = (TextView)findViewById(R.id.tempShow);
 //        ArrayList<Event> events = new ArrayList<Event>();
@@ -218,64 +226,6 @@ public class MainActivity extends AppCompatActivity
 //        rvEvents.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    public void getNew(int n) {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String res = null;
-        try {
-            URL url = new URL("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(n));
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
-
-            InputStream stream = connection.getInputStream();
-
-            reader = new BufferedReader(new InputStreamReader(stream));
-
-            StringBuffer buffer = new StringBuffer();
-
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line);
-            }
-            res = buffer.toString();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if(connection != null) {
-                connection.disconnect();
-            }
-            try {
-                if(reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if(res != null){
-            try {
-                JSONArray jsonArray = new JSONArray(res);
-                int count = jsonArray.length();
-                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
-                for(int i=0 ; i< count; i++){   // iterate through jsonArray
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
-                    String name = jsonObject.getString("event_title");
-                    String desc = jsonObject.getString("event_description");
-                    String loc = jsonObject.getString("event_location");
-                    String time = jsonObject.getString("event_post_time");
-                    String imgUrl = jsonObject.getString("event_image_url");
-                    lastEventId = Integer.parseInt(jsonObject.getString("event_id"));
-                    locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl + "');");
-                }
-                refreshItems();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public class JSONTask extends AsyncTask<String,String,String> {
         @Override
         protected String doInBackground(String... params) {
@@ -324,6 +274,7 @@ public class MainActivity extends AppCompatActivity
                 JSONArray jsonArray = new JSONArray(result);
                 int count = jsonArray.length();
                 SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+                locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
                 for(int i=0 ; i< count; i++) {   // iterate through jsonArray
                     JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
                     String name = jsonObject.getString("event_title");
@@ -334,6 +285,7 @@ public class MainActivity extends AppCompatActivity
                     String eventId = jsonObject.getString("event_id");
                     locDb.execSQL("INSERT INTO events VALUES('" + name + "','" + desc + "','" + time + "','" + loc + "','" + imgUrl +  "','" + eventId + "');");
                 }
+                locDb.close();
                 refreshItems();
             } catch(Exception e) {
                 e.printStackTrace();
