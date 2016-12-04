@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.InputStream;
@@ -27,7 +29,7 @@ public class EventInfoActivity extends AppCompatActivity {
         if(bd != null) {
             String imgUrl = (String) bd.get("img");
             if (imgUrl != "NULL") {
-                new DownloadImageTask((ImageView) findViewById(R.id.info_image))
+                new DownloadImageTask((ImageView) findViewById(R.id.info_image),(ProgressBar) findViewById(R.id.loading_img))
                         .execute(imgUrl);
             }
             setTitle((String) bd.get("name"));
@@ -38,9 +40,16 @@ public class EventInfoActivity extends AppCompatActivity {
     }
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
+        ProgressBar pb;
 
-        public DownloadImageTask(ImageView bmImage) {
+        public DownloadImageTask(ImageView bmImage, ProgressBar pb) {
             this.bmImage = bmImage;
+            this.pb = pb;
+        }
+
+        protected void onPreExecute() {
+            bmImage.setVisibility(View.GONE);
+            pb.setVisibility(View.VISIBLE);
         }
 
         protected Bitmap doInBackground(String... urls) {
@@ -58,6 +67,8 @@ public class EventInfoActivity extends AppCompatActivity {
 
         protected void onPostExecute(Bitmap result) {
             bmImage.setImageBitmap(result);
+            pb.setVisibility(View.GONE);
+            bmImage.setVisibility(View.VISIBLE);
         }
     }
 }
