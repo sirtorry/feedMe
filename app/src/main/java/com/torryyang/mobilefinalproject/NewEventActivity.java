@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -25,7 +26,6 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -42,8 +42,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
-
-import static android.R.attr.bitmap;
 
 public class NewEventActivity extends AppCompatActivity {
 
@@ -159,19 +157,20 @@ public class NewEventActivity extends AppCompatActivity {
 //                newEventObj params = new newEventObj(name,desc,time,loc,tempImage,imageAdded);
 //                postEvent myTask = new postEvent();
 //                myTask.execute(params);
+                new postEvent(name,desc,time,loc,tempImage,imageAdded).execute();
 
-                if(imageAdded) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
-                    byte[] imgData = baos.toByteArray();
-                    String path = "eventImages/" + UUID.randomUUID() + ".png";
-                    StorageReference eventImageRef = storage.getReference(path);
-                    StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
-                    UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
-                    uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            imgUrl = taskSnapshot.getDownloadUrl().toString();
+//                if(imageAdded) {
+//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                    tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
+//                    byte[] imgData = baos.toByteArray();
+//                    String path = "eventImages/" + UUID.randomUUID() + ".png";
+//                    StorageReference eventImageRef = storage.getReference(path);
+//                    StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
+//                    UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
+//                    uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                        @Override
+//                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                            imgUrl = taskSnapshot.getDownloadUrl().toString();
 //                            JSONObject obj = new JSONObject();
 //                            try {
 //                                obj.put("event_title", name);
@@ -184,9 +183,9 @@ public class NewEventActivity extends AppCompatActivity {
 //                            } catch(Exception e) {
 //                                e.printStackTrace();
 //                            }
-                        }
-                    });
-                }
+//                        }
+//                    });
+//                }
 //                else{
 //                    JSONObject obj = new JSONObject();
 //                    try {
@@ -298,28 +297,40 @@ public class NewEventActivity extends AppCompatActivity {
         }
     }
 
-//    private class postEvent extends AsyncTask<newEventObj, Void, Void> {
-//        @Override
-//        protected Void doInBackground(newEventObj... params) {
-//            if(params[0].imgAdded) {
-//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//                params[0].img.compress(Bitmap.CompressFormat.PNG,100,baos);
-//                byte[] imgData = baos.toByteArray();
-//                String path = "eventImages/" + UUID.randomUUID() + ".png";
-//                StorageReference eventImageRef = storage.getReference(path);
-//                StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
-//                UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
+    private class postEvent extends AsyncTask<Void, Void, Void> {
+        String name,desc,time,loc;
+        Bitmap tempImage;
+        Boolean imgAdded;
+
+        public postEvent(String name, String desc,String time,String loc,Bitmap tempImage,Boolean imgAdded) {
+            this.name = name;
+            this.desc = desc;
+            this.time = time;
+            this.loc = loc;
+            this.tempImage = tempImage;
+            this.imgAdded = imgAdded;
+        }
+
+        protected Void doInBackground(Void... params) {
+            if(imgAdded) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                tempImage.compress(Bitmap.CompressFormat.PNG,100,baos);
+                byte[] imgData = baos.toByteArray();
+                String path = "eventImages/" + UUID.randomUUID() + ".png";
+                StorageReference eventImageRef = storage.getReference(path);
+                StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("eventName",name).build();
+                UploadTask uploadTask =eventImageRef.putBytes(imgData,metadata);
 //                uploadTask.addOnSuccessListener(NewEventActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
 //                    @Override
 //                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        imgUrl = taskSnapshot.getDownloadUrl().toString();
+//                        String imgUrl = taskSnapshot.getDownloadUrl().toString();
 //                    }
 //                });
-//
-//            }
-//            return null;
-//        }
-//    }
+
+            }
+            return null;
+        }
+    }
 
     private static File getOutputMediaFile(){
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
