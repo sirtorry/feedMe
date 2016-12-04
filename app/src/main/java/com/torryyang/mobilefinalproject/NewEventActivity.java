@@ -43,6 +43,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import static android.R.attr.bitmap;
+
 public class NewEventActivity extends AppCompatActivity {
 
     Button makeButton, addImageButton;
@@ -76,14 +78,14 @@ public class NewEventActivity extends AppCompatActivity {
         }
     }
 
-//    public void onSaveInstanceState(Bundle savedInstanceState) {
-//        // Save the user's current game state
-//        savedInstanceState.putInt(PLAYER_SCORE, mCurrentScore);
-//        savedInstanceState.putInt(PLAYER_LEVEL, mCurrentLevel);
-//
-//        // Always call the superclass so it can save the view hierarchy state
-//        super.onSaveInstanceState(savedInstanceState);
-//    }
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        savedInstanceState.putParcelable("tempImage", tempImage);
+        savedInstanceState.putBoolean("imageAdded", imageAdded);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +98,14 @@ public class NewEventActivity extends AppCompatActivity {
         eventLoc = (EditText) findViewById(R.id.new_event_loc);
         eventTime = (EditText) findViewById(R.id.new_event_time);
         addImageButton = (Button) findViewById(R.id.add_pic_but);
+
+        if (savedInstanceState != null) {
+            tempImage = savedInstanceState.getParcelable("tempImage");
+            imageAdded = savedInstanceState.getBoolean("imageAdded");
+            if(imageAdded) {
+                addImageButton.setText("Photo attached. Click to change.");
+            }
+        }
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             addImageButton.setEnabled(false);
