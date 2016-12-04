@@ -91,8 +91,6 @@ public class MainActivity extends AppCompatActivity
                 String img = query.getString(4);
                 events.add(new Event(name,desc,time,loc,img));
             }
-        } else {
-            new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created");
         }
         locDb.close();
 
@@ -106,7 +104,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onRefresh() {
                 // Refresh items
-                refreshItems();
+                SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+                locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
+                Cursor query = locDb.rawQuery("SELECT * from events",null);
+                query.moveToLast();
+                lastEventId = Integer.valueOf(query.getString(5));
+                new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(lastEventId));
             }
         });
     }
@@ -140,7 +143,12 @@ public class MainActivity extends AppCompatActivity
 
     public void onResume() {
         super.onResume();  // Always call the superclass method first
-        refreshItems();
+        SQLiteDatabase locDb = getBaseContext().openOrCreateDatabase("local-data.db",MODE_PRIVATE,null);
+        locDb.execSQL("CREATE TABLE IF NOT EXISTS events(name TEXT, desc TEXT, eventTime TEXT, location TEXT, imageUrl TEXT, eventId TEXT);");
+        Cursor query = locDb.rawQuery("SELECT * from events",null);
+        query.moveToLast();
+        lastEventId = Integer.valueOf(query.getString(5));
+        new JSONTask().execute("http://plato.cs.virginia.edu/~psa5dg/created/"+String.valueOf(lastEventId));
 //        tvData = (TextView)findViewById(R.id.tempShow);
 //        ArrayList<Event> events = new ArrayList<Event>();
 //        events.add(new Event("Birthday Party", "free cake", "13:54", "180 McCormick Rd, Charlottesville, VA 22903, USA", "http://www.seriouseats.com/recipes/assets_c/2013/08/20130624-257009-chicken-rice-set-edit-thumb-625xauto-343576.jpg"));
