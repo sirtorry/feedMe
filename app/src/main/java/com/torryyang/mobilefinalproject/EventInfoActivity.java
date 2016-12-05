@@ -3,6 +3,7 @@ package com.torryyang.mobilefinalproject;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,8 @@ import java.io.InputStream;
 
 public class EventInfoActivity extends AppCompatActivity {
 
+    String loc;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +30,7 @@ public class EventInfoActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle bd = intent.getExtras();
         if(bd != null) {
+            loc = (String) bd.get("loc");
             String imgUrl = (String) bd.get("img");
             if (imgUrl != "NULL") {
                 new DownloadImageTask((ImageView) findViewById(R.id.info_image),(ProgressBar) findViewById(R.id.loading_img))
@@ -35,8 +39,17 @@ public class EventInfoActivity extends AppCompatActivity {
             setTitle((String) bd.get("name"));
             infoDesc.setText(Html.fromHtml("<b><big>" + "What? "  + "</big></b>" + (String) bd.get("desc")));
             infoTime.setText(Html.fromHtml("<b><big>" + "When? "  + "</big></b>" + (String) bd.get("time")));
-            infoLoc.setText(Html.fromHtml("<b><big>" + "Where? "  + "</big></b>" + (String) bd.get("loc")));
+            infoLoc.setText(Html.fromHtml("<b><big>" + "Where? "  + "</big></b>" + loc));
         }
+
+        infoLoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String map = "http://maps.google.co.in/maps?q=" + loc;
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(map));
+                startActivity(intent);
+            }
+        });
     }
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
