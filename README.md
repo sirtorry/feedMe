@@ -1,7 +1,3 @@
 # final-project-gengar
 
-since last milestone:  
-- time picker  
-- place picker (GPS requirement)
-
-to-do: add picture
+backend stopped. application will no longer function as expected.
